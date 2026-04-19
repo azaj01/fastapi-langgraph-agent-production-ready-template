@@ -33,6 +33,7 @@ cp .env.example .env.development
 | `MAX_TOKENS` | `2000` | No | Max tokens per LLM response |
 | `MAX_LLM_CALL_RETRIES` | `3` | No | Retries per model before switching to fallback |
 | `LLM_TOTAL_TIMEOUT` | `60` | No | Max seconds for the entire fallback loop |
+| `SESSION_NAMING_ENABLED` | `true` | No | Auto-generate a session title from the user's first message using an LLM background task |
 
 ---
 

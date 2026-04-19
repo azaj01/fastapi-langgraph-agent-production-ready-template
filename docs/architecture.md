@@ -111,13 +111,16 @@ graph LR
 
 **Username flows through session, not per-request DB lookup.** The user's display name is copied to `Session.username` at session creation time. Chat requests read it from the already-loaded session object — zero extra queries.
 
+**Session titles are generated with zero added latency.** On the first message of an unnamed session, the API atomically claims the session with a placeholder name (a truncated version of the user's message), then fires a background `asyncio.Task` to call a fast nano model with structured output. The main chat response is returned immediately — title generation runs concurrently. An atomic `UPDATE … WHERE name = ''` in Postgres ensures exactly one worker wins the claim even under concurrent requests.
+
 ## Component responsibilities
 
 | Component | File | Responsibility |
 |---|---|---|
 | LangGraph Agent | `app/core/langgraph/graph.py` | Orchestrates the conversation loop |
-| LLM Service | `app/services/llm.py` | Model registry, retries, circular fallback |
+| LLM Service | `app/services/llm/` | Model registry, retries, circular fallback, structured output |
 | Memory Service | `app/services/memory.py` | mem0 semantic memory + cache |
+| Session Naming | `app/services/session_naming.py` | Background LLM title generation for new sessions |
 | Database Service | `app/services/database.py` | User/session CRUD |
 | Cache Service | `app/core/cache.py` | Valkey/Redis with in-memory fallback |
 | Middleware | `app/core/middleware.py` | Metrics, logging context, profiling |
